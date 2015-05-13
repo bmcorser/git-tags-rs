@@ -2,3 +2,7 @@
 name = "git-tags-rs"
 version = "0.1.0"
 authors = ["bmcorser <bmcorser@gmail.com>"]
+
+[dependencies]
+docopt = "*"
+rustc-serialize = "*"
