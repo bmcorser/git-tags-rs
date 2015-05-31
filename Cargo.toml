@@ -4,16 +4,12 @@ version = "0.1.0"
 authors = ["bmcorser <bmcorser@gmail.com>"]
 
 [dependencies]
-getopts = "0.2"
+clap = "0.10"
 
 [lib]
 name = "tag"
 path = "src/lib/tag.rs"
 
 [[bin]]
-name = "tag-release"
-path = "src/bin/release.rs"
-
-[[bin]]
-name = "tag-lookup"
-path = "src/bin/lookup.rs"
+name = "tag"
+path = "src/bin/main.rs"
