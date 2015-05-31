@@ -4,5 +4,16 @@ version = "0.1.0"
 authors = ["bmcorser <bmcorser@gmail.com>"]
 
 [dependencies]
-docopt = "*"
-rustc-serialize = "*"
+getopts = "0.2"
+
+[lib]
+name = "tag"
+path = "src/lib/tag.rs"
+
+[[bin]]
+name = "tag-release"
+path = "src/bin/release.rs"
+
+[[bin]]
+name = "tag-lookup"
+path = "src/bin/lookup.rs"

@@ -3,15 +3,15 @@ extern crate docopt;
 use docopt::Docopt;
 
 static USAGE: &'static str = "
-Naval Fate.
+Lookup a release tag by package, commit or alias.
 
 Usage:
-  naval_fate.py ship new <name>...
-  naval_fate.py ship <name> move <x> <y> [--speed=<kn>]
-  naval_fate.py ship shoot <x> <y>
-  naval_fate.py mine (set|remove) <x> <y> [--moored | --drifting]
-  naval_fate.py (-h | --help)
-  naval_fate.py --version
+  tag ship new <name>...
+  tag ship <name> move <x> <y> [--speed=<kn>]
+  tag ship shoot <x> <y>
+  tag mine (set|remove) <x> <y> [--moored | --drifting]
+  tag (-h | --help)
+  tag --version
 
 Options:
   -h --help     Show this screen.
