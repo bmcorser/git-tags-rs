@@ -1,15 +1,12 @@
 extern crate clap;
 
 
-fn command () {
-    const usage: &'static str = "
-    -m --message=<message>  Tell others what this release is
-    -a --alias=<alias>      Release named packages under an alias
+pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
+    let usage = "
+    -a --alias=<alias>      Optionally lookup by alias
     -r --repo=<repo>        Specifiy the repository to release from
-    -n --no-remote          Don’t push tags to the remote
-    -f --force              Make a release even if nothing changed
     ";
-    clap::SubCommand::new("release")
-                     .about("about release")
+    clap::SubCommand::new("lookup")
+                     .about("about lookup")
                      .arg_from_usage(usage)
 }
