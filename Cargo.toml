@@ -5,6 +5,7 @@ authors = ["bmcorser <bmcorser@gmail.com>"]
 
 [dependencies]
 clap = "0.10"
+tempfile = "0.5"
 
 [lib]
 name = "tag"
