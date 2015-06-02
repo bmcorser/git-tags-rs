@@ -12,10 +12,10 @@ fn main () {
                      .arg_required_else_help(true)
                         .subcommand(release::command())
                         .subcommand(lookup::command());
-    let matches = app.get_matches();
-    match matches.subcommand_name() {
-        Some("release") => release::run(matches),
-        Some("lookup")  => lookup::run(matches),
+    let root_matches = app.get_matches();
+    match root_matches.subcommand() {
+        ("release", Some(matches)) => release::run(matches),
+        ("lookup", Some(matches)) => release::run(matches),
         _ => (),
     }
 }

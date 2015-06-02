@@ -6,10 +6,11 @@ authors = ["bmcorser <bmcorser@gmail.com>"]
 [dependencies]
 clap = "0.10"
 tempfile = "0.5"
+git2 = "0.2.11"
 
 [lib]
 name = "tag"
-path = "src/lib/tag.rs"
+path = "src/tag/mod.rs"
 
 [[bin]]
 name = "tag"

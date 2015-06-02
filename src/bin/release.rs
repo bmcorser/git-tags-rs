@@ -1,12 +1,15 @@
 use std;
+use std::collections::HashSet;
+
 extern crate clap;
 extern crate tempfile;
+extern crate tag;
 
 
 pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
     clap::SubCommand::new("release")
                      .about("about release")
-                     // .arg(clap::Arg::from_usage("[pkg].."))
+                     .arg(clap::Arg::from_usage("<pkgs>... 'A sequence of package names'"))
                      .arg_required_else_help(true)
                      .args_from_usage("\
     -m --message=[message]  'Tell others what this release is'
@@ -16,19 +19,25 @@ pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
     -f --force              'Make a release even if nothing changed'")
 }
 
-pub fn run(matches: clap::ArgMatches) {
-    if let Some(ref message) = matches.value_of("message") {
-        println!("{:?}",  message);
-    } else {
-        println!("{:?}", "nicht");
-    }/*else {
-        use std::io::{Read, Seek, SeekFrom};
-        let mut tmpfile = tempfile::NamedTempFile::new().unwrap();
-        std::process::Command::new("vim").arg(tmpfile.path())
-            .spawn().unwrap().wait();
-        tmpfile.seek(SeekFrom::Start(0)).unwrap();
-        let mut buf = String::new();
-        tmpfile.read_to_string(&mut buf).unwrap();
-        println!("{:?}", buf);
-    }*/
+fn capture_message<'a> (mut message: String) -> String {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut tmpfile = tempfile::NamedTempFile::new().unwrap();
+    std::process::Command::new("vim")
+        .arg(tmpfile.path())
+        .spawn().unwrap().wait();
+    tmpfile.seek(SeekFrom::Start(0)).unwrap();
+    tmpfile.read_to_string(&mut message).unwrap();
+    message
+}
+
+pub fn run(matches: &clap::ArgMatches) {
+    let mut message = String::new();
+    match matches.value_of("message") {
+        None    => (), //message = capture_message(message),
+        Some(m) => message = m.to_string(),
+    }
+    let pkgs = HashSet::new();
+    for pkg in matches.values_of("pkgs") {
+        pkgs.insert(tag::Package.new(pkg))
+    }
 }
