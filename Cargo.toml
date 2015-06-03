@@ -10,8 +10,8 @@ git2 = "0.2.11"
 
 [lib]
 name = "tag"
-path = "src/lib.rs"
+path = "src/tag/mod.rs"
 
 [[bin]]
 name = "tag"
-path = "src/main.rs"
+path = "src/cli/main.rs"

@@ -1,18 +1,8 @@
 use std::collections::HashSet;
 
-extern crate git2;
 use git2::{Repository, Reference};
 
-pub struct Package<'a> {
-    name: &'a str,
-}
-
-impl<'a> Package<'a> {
-    fn new (name: &'a str) -> Package {
-        // check if it’s a package
-        Package{name: name}
-    }
-}
+use package::Package;
 
 pub struct Release<'a> {
     commit: Reference<'a>,
@@ -21,11 +11,7 @@ pub struct Release<'a> {
 }
 
 impl<'a> Release<'a> {
-    fn new (
-        repo: &'a Repository,
-        alias: Option<&'a str>,
-        pkgs: HashSet<Package<'a>>,
-    ) -> Release<'a> {
+    pub fn new (repo: &'a Repository, alias: Option<&'a str>, pkgs: HashSet<Package<'a>>) -> Release<'a> {
         Release {
             commit: repo.head().unwrap(),
             alias: alias,

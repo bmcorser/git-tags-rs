@@ -1,6 +1,7 @@
 extern crate clap;
 extern crate tempfile;
 
+extern crate tag;
 mod release;
 mod lookup;
 

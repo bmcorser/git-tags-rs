@@ -1,15 +1,13 @@
 use std;
 use std::collections::HashSet;
 
-extern crate clap;
-extern crate tempfile;
-extern crate tag;
-use tag;
+use tag::package::Package;
+use clap;
+use tempfile;
 
 
 
 pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
-    tag;
     clap::SubCommand::new("release")
                      .about("about release")
                      .arg(clap::Arg::from_usage("<pkgs>... 'A sequence of package names'"))
@@ -39,8 +37,9 @@ pub fn run(matches: &clap::ArgMatches) {
         None    => (), //message = capture_message(message),
         Some(m) => message = m.to_string(),
     }
-    let pkgs = HashSet::new();
-    for pkg in matches.values_of("pkgs") {
-        pkgs.insert(tag::lib::Package.new(pkg))
+    let mut pkgs = HashSet::new();
+    for pkg_name in matches.values_of("pkgs").unwrap() {
+        pkgs.insert(Package::new(pkg_name));
     }
+    println!("{:?}", pkgs);
 }
