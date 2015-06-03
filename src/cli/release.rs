@@ -4,9 +4,12 @@ use std::collections::HashSet;
 extern crate clap;
 extern crate tempfile;
 extern crate tag;
+use tag;
+
 
 
 pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
+    tag;
     clap::SubCommand::new("release")
                      .about("about release")
                      .arg(clap::Arg::from_usage("<pkgs>... 'A sequence of package names'"))
@@ -38,6 +41,6 @@ pub fn run(matches: &clap::ArgMatches) {
     }
     let pkgs = HashSet::new();
     for pkg in matches.values_of("pkgs") {
-        pkgs.insert(tag::Package.new(pkg))
+        pkgs.insert(tag::lib::Package.new(pkg))
     }
 }
