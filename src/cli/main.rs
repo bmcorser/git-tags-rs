@@ -1,6 +1,8 @@
 extern crate clap;
 extern crate tempfile;
 
+extern crate git2;
+
 extern crate tag;
 mod release;
 mod lookup;
@@ -13,10 +15,10 @@ fn main () {
                      .arg_required_else_help(true)
                         .subcommand(release::command())
                         .subcommand(lookup::command());
-    let root_matches = app.get_matches();
-    match root_matches.subcommand() {
-        ("release", Some(matches)) => release::run(matches),
-        ("lookup", Some(matches)) => release::run(matches),
+    let args = app.get_matches();
+    match args.subcommand() {
+        ("release", Some(cmd_args)) => release::run(cmd_args),
+        ("lookup", Some(cmd_args)) => lookup::run(cmd_args),
         _ => (),
     }
 }
