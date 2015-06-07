@@ -15,5 +15,5 @@ pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
                      .arg_required_else_help(true)
 }
 
-pub fn run(matches: &clap::ArgMatches) {
+pub fn run(matches: &clap::ArgMatches) -> Result<(), ()> {
 }

@@ -7,6 +7,7 @@ use git2::Repository;
 
 use tag::package::Package;
 use tag::release::Release;
+use tag::release;
 use clap;
 use tempfile;
 
@@ -39,22 +40,30 @@ fn capture_message<'a> (mut notes: String) -> String {
     notes
 }
 
-pub fn run(opts: &clap::ArgMatches) {
-    let path = Path::new(opts.value_of("repo").unwrap_or("."));
+
+pub fn run(opts: &clap::ArgMatches) -> Result<(), Box<Error>> {
+    let repo_path = Path::new(opts.value_of("repo").unwrap_or("."));
     let repo = Repository::open(path).unwrap();
     let mut notes = String::new();
     match opts.value_of("message") {
         None    => notes = capture_message(notes),
         Some(m) => notes = m.to_string(),
     }
-    let mut pkgs = HashSet::new();
-    for pkg_name in opts.values_of("pkgs").unwrap() {
-        pkgs.insert(Package::new(pkg_name));
-    }
     let commit = opts.value_of("commit").unwrap_or("HEAD");
+    let pkg_paths = opts.values_of("pkgs")
+                        .unwrap()
+                        .map(|string| Path::new(string))
+                        .map(|path| Package::new(path).unwrap())
+                        .collect();
     let abbrev_result = repo.revparse_single(commit)
-                            .unwrap().short_id().unwrap();
-    let release = Release::new(abbrev_result.as_str().unwrap(),
-                               opts.value_of("alias"), pkgs, &notes);
+                            .unwrap()
+                            .short_id()
+                            .unwrap();
+    let release = Release::new(
+        abbrev_result.as_str().unwrap(),
+        opts.value_of("alias"),
+        pkg_paths,
+        &notes
+    );
     println!("{:?}", release);
 }

@@ -1,14 +1,15 @@
 use std::fmt;
+use std::error::Error;
 use std::collections::HashSet;
 
 use git2::{Repository, Reference, ObjectType, Buf};
 
-use package::Package;
+use package;
 
 pub struct Release<'a> {
     commit: &'a str,
     alias: Option<&'a str>,
-    pkgs: HashSet<Package<'a>>,
+    pkgs: HashSet<&'a str>,
     notes: &'a str,
 }
 
@@ -21,7 +22,7 @@ impl<'a> fmt::Debug for Release<'a> {
 }
 
 impl<'a> Release<'a> {
-    pub fn new (commit: &'a str, alias: Option<&'a str>, pkgs: HashSet<Package<'a>>, notes: &'a str) -> Release<'a> {
+    pub fn new (commit: &'a str, alias: Option<&'a str>, pkgs: HashSet<&'a str>, notes: &'a str) -> Release<'a> {
         Release {
             commit: commit,
             alias: alias,
@@ -29,8 +30,18 @@ impl<'a> Release<'a> {
             pkgs: pkgs,
         }
     }
-    /*
-    fn naive_tags () -> collections::HashSet<&'a str> {
+}
+
+#[test]
+fn validate_pkgs_behaviour () {
+    assert!(false);
+}
+
+pub fn validate_pkgs<'a> (pkgs: Vec<&str>) -> Result<HashSet<&'a str>, Box<Error>> {
+    let pkg_set = HashSet::new();
+    for pkg_name in pkgs {
+        let valid_pkg = try!(package::validate(pkg_name));
+        pkg_set.insert(valid_pkg);
     }
-    */
+    pkg_set
 }
