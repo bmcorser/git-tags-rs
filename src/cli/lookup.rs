@@ -1,4 +1,5 @@
 extern crate clap;
+use std::error::Error;
 
 pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
     let usage = "\
@@ -15,5 +16,6 @@ pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
                      .arg_required_else_help(true)
 }
 
-pub fn run(matches: &clap::ArgMatches) -> Result<(), ()> {
+pub fn run(matches: &clap::ArgMatches) -> Result<(), Box<Error>> {
+    Ok(())
 }

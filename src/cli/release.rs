@@ -1,4 +1,5 @@
 use std;
+use std::error::Error;
 use std::io::{Read, Seek, SeekFrom};
 use std::collections::HashSet;
 use std::path::Path;
@@ -25,7 +26,7 @@ pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
     -f --force              'Ignore dirty repo warnings'")
 }
 
-#[allow(unused)]  // don’t want the actual return from the Command call
+#[allow(unused)]  // TODO: Use result
 fn call_editor (tmpfile: &mut tempfile::NamedTempFile) -> () {
     std::process::Command::new("vim")
         .arg(tmpfile.path())
@@ -41,20 +42,21 @@ fn capture_message<'a> (mut notes: String) -> String {
 }
 
 
-pub fn run(opts: &clap::ArgMatches) -> Result<(), Box<Error>> {
+pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), Box<Error>> {
     let repo_path = Path::new(opts.value_of("repo").unwrap_or("."));
-    let repo = Repository::open(path).unwrap();
+    let repo = Repository::open(repo_path).unwrap();
     let mut notes = String::new();
     match opts.value_of("message") {
         None    => notes = capture_message(notes),
         Some(m) => notes = m.to_string(),
     }
     let commit = opts.value_of("commit").unwrap_or("HEAD");
-    let pkg_paths = opts.values_of("pkgs")
-                        .unwrap()
-                        .map(|string| Path::new(string))
-                        .map(|path| Package::new(path).unwrap())
-                        .collect();
+    let mut pkgs = HashSet::new();
+    for pkg_string in opts.values_of("pkgs").unwrap() {
+        let path = Path::new(pkg_string);
+        let pkg = try!(Package::new(path));
+        pkgs.insert(pkg);
+    }
     let abbrev_result = repo.revparse_single(commit)
                             .unwrap()
                             .short_id()
@@ -62,8 +64,9 @@ pub fn run(opts: &clap::ArgMatches) -> Result<(), Box<Error>> {
     let release = Release::new(
         abbrev_result.as_str().unwrap(),
         opts.value_of("alias"),
-        pkg_paths,
+        pkgs,
         &notes
     );
     println!("{:?}", release);
+    Ok(())
 }

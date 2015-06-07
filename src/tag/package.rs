@@ -23,8 +23,8 @@ impl<'a> Package<'a> {
     }
 }
 
-fn validate (path: &Path) -> Result<(), io::Error> {
+fn validate (path: &Path) -> Result<bool, io::Error> {
     try!(fs::metadata(path.join("deploy")));
     try!(fs::metadata(path.join("build")));
-    Ok(())
+    Ok(true)
 }

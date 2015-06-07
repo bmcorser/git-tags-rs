@@ -9,7 +9,7 @@ use package;
 pub struct Release<'a> {
     commit: &'a str,
     alias: Option<&'a str>,
-    pkgs: HashSet<&'a str>,
+    pkgs: HashSet<package::Package<'a>>,
     notes: &'a str,
 }
 
@@ -22,7 +22,8 @@ impl<'a> fmt::Debug for Release<'a> {
 }
 
 impl<'a> Release<'a> {
-    pub fn new (commit: &'a str, alias: Option<&'a str>, pkgs: HashSet<&'a str>, notes: &'a str) -> Release<'a> {
+    pub fn new (commit: &'a str, alias: Option<&'a str>, pkgs: HashSet<package::Package<'a>>, notes: &'a str)
+        -> Release<'a> {
         Release {
             commit: commit,
             alias: alias,
