@@ -36,12 +36,3 @@ impl<'a> Release<'a> {
 fn validate_pkgs_behaviour () {
     assert!(false);
 }
-
-pub fn validate_pkgs<'a> (pkgs: Vec<&str>) -> Result<HashSet<&'a str>, Box<Error>> {
-    let pkg_set = HashSet::new();
-    for pkg_name in pkgs {
-        let valid_pkg = try!(package::validate(pkg_name));
-        pkg_set.insert(valid_pkg);
-    }
-    pkg_set
-}

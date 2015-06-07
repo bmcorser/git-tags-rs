@@ -1,5 +1,3 @@
-use std;
-
 extern crate tempfile;
 extern crate clap;
 extern crate git2;
