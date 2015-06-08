@@ -41,7 +41,6 @@ fn capture_message<'a> (mut notes: String) -> String {
     notes
 }
 
-
 pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), Box<Error>> {
     let repo_path = Path::new(opts.value_of("repo").unwrap_or("."));
     let repo = Repository::open(repo_path).unwrap();
@@ -53,20 +52,19 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), Box<Error>> {
     let commit = opts.value_of("commit").unwrap_or("HEAD");
     let mut pkgs = HashSet::new();
     for pkg_string in opts.values_of("pkgs").unwrap() {
-        let path = Path::new(pkg_string);
-        let pkg = try!(Package::new(path));
+        let pkg = try!(Package::new(&pkg_string));
         pkgs.insert(pkg);
     }
-    let abbrev_result = repo.revparse_single(commit)
-                            .unwrap()
-                            .short_id()
-                            .unwrap();
     let release = Release::new(
-        abbrev_result.as_str().unwrap(),
+        &repo,
+        commit,
         opts.value_of("alias"),
         pkgs,
-        &notes
+        &notes,
+        None
     );
+    release.validate_tags().map_err(|e| println!("{:?}", e.to_string()));
+    // let new_tags = release.new_tags();
     println!("{:?}", release);
     Ok(())
 }

@@ -27,4 +27,5 @@ fn main () -> () {
         // ("lookup", Some(cmd_args)) => lookup::run(cmd_args),
         _ => Err(fail),
     };
+    println!("{:?}", result);
 }

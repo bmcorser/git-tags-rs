@@ -7,7 +7,7 @@ use std::result::Result;
 
 #[derive(Hash, Eq, PartialEq)]
 pub struct Package<'a> {
-    name: &'a Path,
+    pub name: &'a str,
 }
 
 impl<'a> fmt::Debug for Package<'a> {
@@ -17,14 +17,15 @@ impl<'a> fmt::Debug for Package<'a> {
 }
 
 impl<'a> Package<'a> {
-    pub fn new (path: &'a Path) -> Result<Package, io::Error> {
+    pub fn new (pkg_string: &'a str) -> Result<Package, io::Error> {
+        let path = Path::new(pkg_string);
         try!(validate(&path));
-        Ok(Package{name: &path})
+        Ok(Package{name: &pkg_string})
     }
 }
 
-fn validate (path: &Path) -> Result<bool, io::Error> {
+fn validate (path: &Path) -> Result<(), io::Error> {
     try!(fs::metadata(path.join("deploy")));
     try!(fs::metadata(path.join("build")));
-    Ok(true)
+    Ok(())
 }
