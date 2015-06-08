@@ -43,7 +43,7 @@ fn capture_message<'a> (mut notes: String) -> String {
 
 pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), Box<Error>> {
     let repo_path = Path::new(opts.value_of("repo").unwrap_or("."));
-    let repo = Repository::open(repo_path).unwrap();
+    let repo = Repository::discover(repo_path).unwrap();
     let mut notes = String::new();
     match opts.value_of("message") {
         None    => notes = capture_message(notes),
@@ -51,8 +51,9 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), Box<Error>> {
     }
     let commit = opts.value_of("commit").unwrap_or("HEAD");
     let mut pkgs = HashSet::new();
-    for pkg_string in opts.values_of("pkgs").unwrap() {
-        let pkg = try!(Package::new(&pkg_string));
+    for pkg_name in opts.values_of("pkgs").unwrap() {
+        let pkg_path = repo_path.join(pkg_name);
+        let pkg = try!(Package::new(pkg_path, pkg_name));
         pkgs.insert(pkg);
     }
     let release = Release::new(

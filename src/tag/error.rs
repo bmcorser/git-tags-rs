@@ -24,9 +24,9 @@ impl Error for ReleaseError {
 }
 
 /*
-impl From<io::Error> for CliError {
-    fn from(err: io::Error) -> CliError {
-        CliError::Io(err)
+impl From<io::Error> for ReleaseError {
+    fn from(err: io::Error) -> ReleaseError {
+        ReleaseError::Io(err)
     }
 }
 */

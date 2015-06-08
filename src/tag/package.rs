@@ -2,12 +2,13 @@ use std::error;
 use std::fs;
 use std::fmt;
 use std::io;
-use std::path::Path;
+use std::path::PathBuf;
 use std::result::Result;
 
 #[derive(Hash, Eq, PartialEq)]
-pub struct Package<'a> {
+pub struct ReleasePackage<'a> {
     pub name: &'a str,
+    pub path: PathBuf,
 }
 
 impl<'a> fmt::Debug for Package<'a> {
@@ -17,15 +18,9 @@ impl<'a> fmt::Debug for Package<'a> {
 }
 
 impl<'a> Package<'a> {
-    pub fn new (pkg_string: &'a str) -> Result<Package, io::Error> {
-        let path = Path::new(pkg_string);
+    pub fn new (path: PathBuf, name: &'a str) -> Result<Package<'a>, io::Error> {
         try!(validate(&path));
-        Ok(Package{name: &pkg_string})
+        Ok(Package{name: &name, path: path})
     }
 }
 
-fn validate (path: &Path) -> Result<(), io::Error> {
-    try!(fs::metadata(path.join("deploy")));
-    try!(fs::metadata(path.join("build")));
-    Ok(())
-}

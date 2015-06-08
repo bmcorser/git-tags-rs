@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 use std::fmt;
+use std::fs;
+use std::io;
 use std::hash::{Hash, Hasher};
 use std::result::Result;
 
@@ -15,7 +17,7 @@ pub struct Release<'a> {
     target: git2::Object<'a>,
     abbrev_commit: String,
     alias: Option<&'a str>,
-    pkgs: HashSet<package::Package<'a>>,
+    pkgs: HashSet<String>,
     notes: &'a str,
     NAMESPACE: &'static str,
 }
@@ -32,7 +34,7 @@ impl<'a> Release<'a> {
     pub fn new (repo: &'a git2::Repository,
                 commit: &'a str,
                 alias: Option<&'a str>,
-                pkgs: HashSet<package::Package<'a>>,
+                pkgs: HashSet<String>,
                 notes: &'a str,
                 namespace: Option<&'static str>)
         -> Release<'a> {
@@ -67,7 +69,7 @@ impl<'a> Release<'a> {
 
     fn pkg_tags(&self, pkg: &str) -> (String, Option<String>) {
         match self.alias {
-            Some(alias) => {
+            Some(_) => {
                 (self.fmt_tag(pkg), Some(self.fmt_tag_alias(pkg)))
             },
             None => (self.fmt_tag(pkg), None),
@@ -97,12 +99,26 @@ impl<'a> Release<'a> {
     pub fn validate_tags (&self) -> Result<(), ReleaseError> {
         for tag_name in &self.tag_names() {
             match self.repo.revparse_single(tag_name) {
-                Ok(tag)  => return Err(ReleaseError::TagExists),
-                Err(err) => Ok::<(), ReleaseError>(()),
+                Ok(_)  => return Err(ReleaseError::TagExists),
+                Err(_) => Ok::<(), ReleaseError>(()),
             };
         };
         Ok(())
     }
+
+    pub fn validate_pkgs (&self) -> Result<(), io::Error> {
+        for pkg_name in self.pkgs {
+            try!(self.validate_pkg(pkg_name));
+        }
+        Ok(())
+    }
+
+    fn validate_pkg (&self, pkg_name: &str) -> Result<(), io::Error> {
+        try!(fs::metadata(self.repo.path().join("deploy")));
+        try!(fs::metadata(self.repo.path().join("build")));
+        Ok(())
+    }
+
     /*
     fn new_tags (&self) -> HashSet<&str> {
     }
