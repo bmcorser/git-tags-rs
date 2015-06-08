@@ -3,7 +3,7 @@ use std::fmt;
 // use std::io;
 
 #[derive(Debug)]
-enum ReleaseError {
+pub enum ReleaseError {
     TagExists,
 }
 

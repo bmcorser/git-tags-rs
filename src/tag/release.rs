@@ -98,7 +98,7 @@ impl<'a> Release<'a> {
         for tag_name in &self.tag_names() {
             match self.repo.revparse_single(tag_name) {
                 Ok(tag)  => return Err(ReleaseError::TagExists),
-                Err(err) => Result::Ok(()),
+                Err(err) => Ok::<(), ReleaseError>(()),
             };
         };
         Ok(())
