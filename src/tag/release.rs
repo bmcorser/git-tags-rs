@@ -7,7 +7,6 @@ use std::result::Result;
 
 use git2;
 
-use package;
 use error::ReleaseError;
 
 static NAMESPACE: &'static str = "releases";
@@ -17,7 +16,7 @@ pub struct Release<'a> {
     target: git2::Object<'a>,
     abbrev_commit: String,
     alias: Option<&'a str>,
-    pkgs: HashSet<String>,
+    pkgs: HashSet<&'a str>,
     notes: &'a str,
     NAMESPACE: &'static str,
 }
@@ -34,7 +33,7 @@ impl<'a> Release<'a> {
     pub fn new (repo: &'a git2::Repository,
                 commit: &'a str,
                 alias: Option<&'a str>,
-                pkgs: HashSet<String>,
+                pkgs: HashSet<&'a str>,
                 notes: &'a str,
                 namespace: Option<&'static str>)
         -> Release<'a> {
@@ -83,7 +82,7 @@ impl<'a> Release<'a> {
     pub fn tag_names (&self) -> HashSet<String> {
         let mut tags = HashSet::new();
         for pkg in &self.pkgs {
-            match self.pkg_tags(pkg.name) {
+            match self.pkg_tags(pkg) {
                 (tag, Some(tag_alias)) => {
                     tags.insert(tag);
                     tags.insert(tag_alias);
@@ -107,7 +106,7 @@ impl<'a> Release<'a> {
     }
 
     pub fn validate_pkgs (&self) -> Result<(), io::Error> {
-        for pkg_name in self.pkgs {
+        for pkg_name in &self.pkgs {
             try!(self.validate_pkg(pkg_name));
         }
         Ok(())

@@ -6,7 +6,6 @@ use std::path::Path;
 
 use git2::Repository;
 
-use tag::package::Package;
 use tag::release::Release;
 use tag::release;
 use clap;
@@ -52,9 +51,7 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), Box<Error>> {
     let commit = opts.value_of("commit").unwrap_or("HEAD");
     let mut pkgs = HashSet::new();
     for pkg_name in opts.values_of("pkgs").unwrap() {
-        let pkg_path = repo_path.join(pkg_name);
-        let pkg = try!(Package::new(pkg_path, pkg_name));
-        pkgs.insert(pkg);
+        pkgs.insert(pkg_name);
     }
     let release = Release::new(
         &repo,
