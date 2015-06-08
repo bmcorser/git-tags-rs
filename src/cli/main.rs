@@ -7,6 +7,7 @@ extern crate clap;
 extern crate git2;
 
 extern crate tag;
+use tag::error::ReleaseError;
 mod release;
 mod lookup;
 
@@ -21,11 +22,10 @@ fn main () -> () {
                         .subcommand(lookup::command());
     let args = app.get_matches();
     // let disaster: Result<(), Box<Error>> = Err(Box::new());
-    let fail = Box::new(io::Error::new(io::ErrorKind::Other, "oh no!")) as Box<std::error::Error>;
     let result = match args.subcommand() {
         ("release", Some(cmd_args)) => release::run(cmd_args),
         // ("lookup", Some(cmd_args)) => lookup::run(cmd_args),
-        _ => Err(fail),
+        _ => Err(ReleaseError::Io),
     };
     println!("{:?}", result);
 }

@@ -5,6 +5,7 @@ use std::io;
 use std::hash::{Hash, Hasher};
 use std::result::Result;
 use std::path::PathBuf;
+use std::error::Error;
 
 use git2;
 
@@ -29,6 +30,31 @@ impl<'a> fmt::Debug for Release<'a> {
     }
 }
 
+fn validate_pkgs (repo: &git2::Repository, pkgs: &HashSet<&str>) -> Result<(), io::Error> {
+    for pkg_name in pkgs {
+        let pkg_path = repo.workdir().unwrap().join(&pkg_name);
+        match fs::metadata(&pkg_path) {
+            Ok(_)    => (),
+            Err(err) => {
+                println!("{:?} doesn’t exist.", pkg_name);
+            }
+        }
+        match validate_pkg(&pkg_path) {
+            Ok(_)    => (),
+            Err(err) => {
+                println!("{:?} is not a valid package.", pkg_name);
+            }
+        }
+    }
+    Ok(())
+}
+
+fn validate_pkg (pkg_path: &PathBuf) -> Result<(), io::Error> {
+    try!(fs::metadata(pkg_path.join("deploy")));
+    try!(fs::metadata(pkg_path.join("build")));
+    Ok(())
+}
+
 impl<'a> Release<'a> {
 
     pub fn new (repo: &'a git2::Repository,
@@ -37,11 +63,12 @@ impl<'a> Release<'a> {
                 pkgs: HashSet<&'a str>,
                 notes: &'a str,
                 namespace: Option<&'static str>)
-        -> Release<'a> {
+        -> Result<Release<'a>, ReleaseError> {
         let namespace = namespace.unwrap_or(NAMESPACE);
         let target = repo.revparse_single(commit).unwrap();
         let abbrev_commit = String::from_utf8(target.short_id().unwrap().to_vec()).unwrap();
-        Release {
+        try!(validate_pkgs(&repo, &pkgs));
+        Ok(Release {
             repo: repo,
             target: target,
             abbrev_commit: abbrev_commit,
@@ -49,7 +76,7 @@ impl<'a> Release<'a> {
             notes: notes,
             pkgs: pkgs,
             NAMESPACE: namespace,
-        }
+        })
     }
 
     fn fmt_tag_alias(&self, pkg: &str) -> String {
@@ -106,30 +133,6 @@ impl<'a> Release<'a> {
         Ok(())
     }
 
-    pub fn validate_pkgs (&self) -> Result<(), io::Error> {
-        for pkg_name in &self.pkgs {
-            let pkg_path = self.repo.workdir().unwrap().join(&pkg_name);
-            match fs::metadata(&pkg_path) {
-                Ok(_)    => (),
-                Err(err) => {
-                    println!("{:?} doesn’t exist.", pkg_name);
-                }
-            }
-            match self.validate_pkg(&pkg_path) {
-                Ok(_)    => (),
-                Err(err) => {
-                    println!("{:?} is not a valid package.", pkg_name);
-                }
-            }
-        }
-        Ok(())
-    }
-
-    fn validate_pkg (&self, pkg_path: &PathBuf) -> Result<(), io::Error> {
-        try!(fs::metadata(pkg_path.join("deploy")));
-        try!(fs::metadata(pkg_path.join("build")));
-        Ok(())
-    }
 
     /*
     fn new_tags (&self) -> HashSet<&str> {

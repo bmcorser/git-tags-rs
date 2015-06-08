@@ -7,7 +7,7 @@ use std::path::Path;
 use git2::Repository;
 
 use tag::release::Release;
-use tag::release;
+use tag::error::ReleaseError;
 use clap;
 use tempfile;
 
@@ -40,7 +40,7 @@ fn capture_message<'a> (mut notes: String) -> String {
     notes
 }
 
-pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), Box<Error>> {
+pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
     let repo_path = Path::new(opts.value_of("repo").unwrap_or("."));
     let repo = Repository::discover(repo_path).unwrap();
     let mut notes = String::new();
@@ -60,9 +60,14 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), Box<Error>> {
         pkgs,
         &notes,
         None
-    );
-    release.validate_tags().map_err(|e| println!("{:?}", e.to_string()));
-    release.validate_pkgs().map_err(|e| println!("{:?}", e.to_string()));
+    ).unwrap();
+    match release.validate_tags() {
+        Ok(_)    => (),
+        Err(err) => {
+            println!("Bad tag");
+            return Err(err);
+        }
+    };
     // let new_tags = release.new_tags();
     println!("{:?}", release);
     Ok(())
