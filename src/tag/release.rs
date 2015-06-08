@@ -4,6 +4,7 @@ use std::fs;
 use std::io;
 use std::hash::{Hash, Hasher};
 use std::result::Result;
+use std::path::PathBuf;
 
 use git2;
 
@@ -107,14 +108,26 @@ impl<'a> Release<'a> {
 
     pub fn validate_pkgs (&self) -> Result<(), io::Error> {
         for pkg_name in &self.pkgs {
-            try!(self.validate_pkg(pkg_name));
+            let pkg_path = self.repo.workdir().unwrap().join(&pkg_name);
+            match fs::metadata(&pkg_path) {
+                Ok(_)    => (),
+                Err(err) => {
+                    println!("{:?} doesn’t exist.", pkg_name);
+                }
+            }
+            match self.validate_pkg(&pkg_path) {
+                Ok(_)    => (),
+                Err(err) => {
+                    println!("{:?} is not a valid package.", pkg_name);
+                }
+            }
         }
         Ok(())
     }
 
-    fn validate_pkg (&self, pkg_name: &str) -> Result<(), io::Error> {
-        try!(fs::metadata(self.repo.path().join("deploy")));
-        try!(fs::metadata(self.repo.path().join("build")));
+    fn validate_pkg (&self, pkg_path: &PathBuf) -> Result<(), io::Error> {
+        try!(fs::metadata(pkg_path.join("deploy")));
+        try!(fs::metadata(pkg_path.join("build")));
         Ok(())
     }
 

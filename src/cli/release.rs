@@ -62,6 +62,7 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), Box<Error>> {
         None
     );
     release.validate_tags().map_err(|e| println!("{:?}", e.to_string()));
+    release.validate_pkgs().map_err(|e| println!("{:?}", e.to_string()));
     // let new_tags = release.new_tags();
     println!("{:?}", release);
     Ok(())
