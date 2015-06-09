@@ -18,7 +18,6 @@ pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
                      .arg_required_else_help(true)
                      .args_from_usage("\
     -m --message=[message]  'Tell others what this release is'
-    -a --alias=[alias]      'Release named packages under an alias'
     -c --commit=[commit]    'Release at a specific commit'
     -r --repo=[repo]        'Specifiy the repository to release from'
     -n --no-remote          'Don’t push tags to the remote'
@@ -56,7 +55,6 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
     let release = Release::new(
         &repo,
         commit,
-        opts.value_of("alias"),
         pkgs,
         &notes,
         None
