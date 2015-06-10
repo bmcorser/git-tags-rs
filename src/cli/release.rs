@@ -1,10 +1,11 @@
+#![feature(convert)]
 use std;
 use std::error::Error;
 use std::io::{Read, Seek, SeekFrom};
 use std::collections::HashSet;
 use std::path::Path;
 
-use git2::Repository;
+use git2;
 
 use tag::release::Release;
 use tag::error::ReleaseError;
@@ -41,16 +42,25 @@ fn capture_message<'a> (mut notes: String) -> String {
 
 pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
     let repo_path = Path::new(opts.value_of("repo").unwrap_or("."));
-    let repo = Repository::discover(repo_path).unwrap();
+    let repo = git2::Repository::discover(repo_path).unwrap();
+
+    let mut pkgs = HashSet::new();
+    let cwd = std::env::current_dir().unwrap();
+    let workdir = repo.workdir().unwrap();
+    let repo_path = cwd.relative_from(workdir).unwrap();
+
     let mut notes = String::new();
     match opts.value_of("message") {
         None    => notes = capture_message(notes),
         Some(m) => notes = m.to_string(),
     }
     let commit = opts.value_of("commit").unwrap_or("HEAD");
-    let mut pkgs = HashSet::new();
     for pkg_name in opts.values_of("pkgs").unwrap() {
-        pkgs.insert(pkg_name);
+        if pkg_name.contains("../") {
+            return Err(ReleaseError::PackagePathDisallowed);
+        }
+        let pkg_path = repo_path.join(pkg_name).clone();
+        pkgs.insert(String::from_str(pkg_path.to_str().unwrap()));
     }
     let release = Release::new(
         &repo,
@@ -59,6 +69,8 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
         &notes,
         None
     ).unwrap();
+    try!(release.validate_unreleased());
+    /*
     match release.validate_tags() {
         Ok(_)    => (),
         Err(err) => {
@@ -66,6 +78,7 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
             return Err(err);
         }
     };
+    */
     // let new_tags = release.new_tags();
     println!("{:?}", release);
     Ok(())

@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::fmt;
 use std::fs;
 use std::io;
+use std::env;
 use std::hash::{Hash, Hasher};
 use std::result::Result;
 use std::path::PathBuf;
@@ -17,7 +18,7 @@ pub struct Release<'a> {
     repo: &'a git2::Repository,
     target: git2::Object<'a>,
     abbrev_commit: String,
-    pkgs: HashSet<&'a str>,
+    pkgs: HashSet<String>,
     notes: &'a str,
     NAMESPACE: &'static str,
 }
@@ -28,7 +29,7 @@ impl<'a> fmt::Debug for Release<'a> {
     }
 }
 
-fn validate_pkgs (repo: &git2::Repository, pkgs: &HashSet<&str>) -> Result<(), io::Error> {
+fn validate_pkgs (repo: &git2::Repository, pkgs: &HashSet<String>) -> Result<(), io::Error> {
     for pkg_name in pkgs {
         let pkg_path = repo.workdir().unwrap().join(&pkg_name);
         match fs::metadata(&pkg_path) {
@@ -57,7 +58,7 @@ impl<'a> Release<'a> {
 
     pub fn new (repo: &'a git2::Repository,
                 commit: &'a str,
-                pkgs: HashSet<&'a str>,
+                pkgs: HashSet<String>,
                 notes: &'a str,
                 namespace: Option<&'static str>)
         -> Result<Release<'a>, ReleaseError> {
@@ -75,11 +76,11 @@ impl<'a> Release<'a> {
         })
     }
 
-    fn fmt_tag(&self, pkg: &str) -> String {
+    fn fmt_tag(&self, pkg: &str, commit: &str) -> String {
         format!("{namespace}/{pkg}/{commit}",
                 namespace=self.NAMESPACE,
                 pkg=pkg,
-                commit=self.abbrev_commit)
+                commit=commit)
     }
 
     fn existing_tags (&self) -> git2::References {
@@ -89,11 +90,20 @@ impl<'a> Release<'a> {
     pub fn tag_names (&self) -> HashSet<String> {
         let mut tags = HashSet::new();
         for pkg in &self.pkgs {
-            tags.insert(self.fmt_tag(&pkg));
+            tags.insert(self.fmt_tag(&pkg, &self.abbrev_commit));
         }
         tags
     }
 
+    pub fn validate_unreleased (&self) -> Result<(), ReleaseError> {
+        let glob = format!("refs/tags/{}/*", self.NAMESPACE);
+        for reference in self.repo.references_glob(&glob).unwrap() {
+            println!("{:?}", reference.name());
+        }
+        Ok(())
+    }
+
+    // pub fn validate_tags (&self) -> Result<HashSet<&str>, ReleaseError> {
     pub fn validate_tags (&self) -> Result<(), ReleaseError> {
         for tag_name in &self.tag_names() {
             match self.repo.revparse_single(tag_name) {

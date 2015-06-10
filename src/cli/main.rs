@@ -1,3 +1,4 @@
+#![feature(path_relative_from,collections,convert)]
 use std::result::Result;
 use std::error::Error;
 use std::convert::From;
@@ -27,5 +28,5 @@ fn main () -> () {
         // ("lookup", Some(cmd_args)) => lookup::run(cmd_args),
         _ => Err(ReleaseError::Io),
     };
-    println!("{:?}", result);
+    println!("Bye.");
 }
