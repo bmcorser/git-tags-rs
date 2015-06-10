@@ -99,6 +99,14 @@ impl<'a> Release<'a> {
         let glob = format!("refs/tags/{}/*", self.NAMESPACE);
         for reference in self.repo.references_glob(&glob).unwrap() {
             println!("{:?}", reference.name());
+            let mut revwalk = self.repo.revwalk().unwrap();
+            revwalk.set_sorting(git2::SORT_TOPOLOGICAL);
+            println!("  {:?}", revwalk);
+            /*
+            for rev in revwalk.push_ref(&self.abbrev_commit).unwrap() {
+                println!("  {:?}", rev);
+            }
+            */
         }
         Ok(())
     }
