@@ -111,72 +111,45 @@ impl<'a> Release<'a> {
         Ok(release)
     }
 
-    fn fmt_tag(&self, pkg: &str, commit: &str) -> String {
-        format!("{namespace}/{pkg}/{commit}",
-                namespace=self.NAMESPACE,
-                pkg=pkg,
-                commit=commit)
-    }
-
     fn existing_tags (&self) -> git2::References {
         self.repo.references_glob(self.NAMESPACE).unwrap()
     }
 
-    /*
     pub fn tag_names (&self) -> HashSet<String> {
         let mut tags = HashSet::new();
         for (pkg_name, _) in self.pkgs.iter() {
-            tags.insert(self.fmt_tag(&pkg_name, &self.abbrev_commit));
+            println!("{:?}", self.fmt_tag(&pkg_name))
         }
         tags
     }
-    */
 
-    pub fn unreleased (&self, pkg_name: &str) -> bool {
+    fn fmt_tag(&self, pkg_name: &str) -> String {
+        let short_id = self.target.short_id().unwrap();
+        let commit = short_id.as_str().unwrap();
+        format!("{namespace}/{pkg_name}/{commit}",
+                namespace=self.NAMESPACE,
+                pkg_name=pkg_name,
+                commit=commit)
+    }
+
+
+    pub fn unreleased (&self, pkg_name: &str, target: &git2::Object) -> Result<(), ReleaseError> {
         let glob = format!("refs/tags/{}/{}/*", self.NAMESPACE, pkg_name);
         for reference in self.repo.references_glob(&glob).unwrap() {
+            if reference.target().unwrap() == target.id() {
+                return Err(ReleaseError::AlreadyReleased);
+            }
         }
-        true
+        Ok(())
     }
 
     pub fn validate_unreleased (&self) -> Result<(), ReleaseError> {
         for (pkg_name, pkg_tree) in self.pkgs.iter() {
-            println!("{:?} -> {:?}", pkg_name, pkg_tree.id());
+            try!(self.unreleased(pkg_name, pkg_tree));
         }
-            /*
-            let mut revwalk = self.repo.revwalk().unwrap();
-            revwalk.set_sorting(git2::SORT_TOPOLOGICAL);
-            revwalk.push_head();
-            // println!("  {:?}", revwalk);
-            for rev in revwalk {
-                println!("rev:  {:?}", rev);
-            }
-            */
-
         Ok(())
     }
 
-    // pub fn validate_tags (&self) -> Result<HashSet<&str>, ReleaseError> {
-    /*
-    pub fn validate_tags (&self) -> Result<(), ReleaseError> {
-        for tag_name in &self.tag_names() {
-            match self.repo.revparse_single(tag_name) {
-                Ok(_)  => return Err(ReleaseError::TagExists),
-                Err(_) => Ok::<(), ReleaseError>(()),
-            };
-        };
-        Ok(())
-    }
-    */
-
-
-    /*
-    fn new_tags (&self) -> HashSet<&str> {
-    }
-    pub fn new_tags (&self) -> HashSet<&str> {
-        let mut tags = HashSet::new();
-    }
-    */
 }
 
 #[test]
