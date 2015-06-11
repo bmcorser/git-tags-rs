@@ -68,7 +68,7 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
     };
     */
     release.validate_unreleased();
-    release.create_tags();
+    // release.create_tags();
     println!("{:?}", release);
     Ok(())
 }

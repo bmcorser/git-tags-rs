@@ -115,6 +115,7 @@ impl<'a> Release<'a> {
         let signature = self.repo.signature().unwrap();
         for (pkg_name, pkg_target) in self.pkgs.iter() {
             let tag_name = self.fmt_tag(&pkg_name);
+            println!("{:?} -> {:?}", pkg_name, pkg_target.id());
             let tag_result = self.repo.tag(&tag_name, pkg_target, &signature, self.notes, false);
             match tag_result {
                 Err(_) => println!("Didn’t create tag: {:?}", tag_name),
@@ -137,7 +138,8 @@ impl<'a> Release<'a> {
     pub fn unreleased (&self, pkg_name: &str, pkg_target: &git2::Object) -> Result<(), ReleaseError> {
         let glob = format!("refs/tags/{}/{}/*", self.NAMESPACE, pkg_name);
         for reference in self.repo.references_glob(&glob).unwrap() {
-            if reference.target().unwrap() == pkg_target.id() {
+            let ref_target = reference.target().unwrap();
+            if ref_target == pkg_target.id() {
                 return Err(ReleaseError::AlreadyReleased);
             }
         }
