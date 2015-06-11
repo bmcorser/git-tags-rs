@@ -111,16 +111,17 @@ impl<'a> Release<'a> {
         Ok(release)
     }
 
-    fn existing_tags (&self) -> git2::References {
-        self.repo.references_glob(self.NAMESPACE).unwrap()
-    }
-
-    pub fn tag_names (&self) -> HashSet<String> {
-        let mut tags = HashSet::new();
-        for (pkg_name, _) in self.pkgs.iter() {
-            println!("{:?}", self.fmt_tag(&pkg_name))
+    pub fn create_tags (&self) -> Result<(), ReleaseError> {
+        let signature = self.repo.signature().unwrap();
+        for (pkg_name, pkg_target) in self.pkgs.iter() {
+            let tag_name = self.fmt_tag(&pkg_name);
+            let tag_result = self.repo.tag(&tag_name, pkg_target, &signature, self.notes, false);
+            match tag_result {
+                Err(_) => println!("Didn’t create tag: {:?}", tag_name),
+                Ok(_) => println!("Created tag: {:?}", tag_name),
+            };
         }
-        tags
+        Ok(())
     }
 
     fn fmt_tag(&self, pkg_name: &str) -> String {
@@ -133,10 +134,10 @@ impl<'a> Release<'a> {
     }
 
 
-    pub fn unreleased (&self, pkg_name: &str, target: &git2::Object) -> Result<(), ReleaseError> {
+    pub fn unreleased (&self, pkg_name: &str, pkg_target: &git2::Object) -> Result<(), ReleaseError> {
         let glob = format!("refs/tags/{}/{}/*", self.NAMESPACE, pkg_name);
         for reference in self.repo.references_glob(&glob).unwrap() {
-            if reference.target().unwrap() == target.id() {
+            if reference.target().unwrap() == pkg_target.id() {
                 return Err(ReleaseError::AlreadyReleased);
             }
         }
