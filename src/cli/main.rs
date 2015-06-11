@@ -1,4 +1,5 @@
 #![feature(path_relative_from,collections,convert)]
+#![allow(warnings)]
 use std::result::Result;
 use std::error::Error;
 use std::convert::From;
