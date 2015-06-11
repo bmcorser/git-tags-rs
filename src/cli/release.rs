@@ -57,18 +57,13 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
         &notes,
         None
     ).unwrap();
-    /*
-    try!(release.validate_unreleased());
-    match release.validate_tags() {
-        Ok(_)    => (),
+    match release.validate_unreleased() {
+        Ok(_) => (),
         Err(err) => {
-            println!("Bad tag");
-            return Err(err);
+            println!("{:?}", err);
         }
-    };
-    */
-    release.validate_unreleased();
-    // release.create_tags();
+    }
+    release.create_tags();
     println!("{:?}", release);
     Ok(())
 }

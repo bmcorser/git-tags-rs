@@ -139,7 +139,9 @@ impl<'a> Release<'a> {
         let glob = format!("refs/tags/{}/{}/*", self.NAMESPACE, pkg_name);
         for reference in self.repo.references_glob(&glob).unwrap() {
             let ref_target = reference.target().unwrap();
-            if ref_target == pkg_target.id() {
+            let ref_object = self.repo.find_object(ref_target, Some(git2::ObjectType::Tag)).unwrap();
+            let ref_tree = ref_object.peel(git2::ObjectType::Tree).unwrap();
+            if ref_tree.id() == pkg_target.id() {
                 return Err(ReleaseError::AlreadyReleased);
             }
         }
