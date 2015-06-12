@@ -7,6 +7,7 @@ pub enum ReleaseError {
     Io,
     PackagePathDisallowed,
     AlreadyReleased,
+    NoTrees,
 }
 
 impl fmt::Display for ReleaseError {
@@ -15,6 +16,7 @@ impl fmt::Display for ReleaseError {
             ReleaseError::AlreadyReleased       => write!(f, "Already released"),
             ReleaseError::Io                    => write!(f, "I forget."),
             ReleaseError::PackagePathDisallowed => write!(f, "Not allowed to use ../ in package spec."),
+            ReleaseError::NoTrees               => write!(f, "No trees."),
         }
     }
 }
@@ -26,6 +28,7 @@ impl Error for ReleaseError {
             ReleaseError::PackagePathDisallowed => "Not allowed to use ../ in package spec.",
             // ReleaseError::AlreadyReleased => "Package already released",
             ReleaseError::Io                    => "I forget",
+            ReleaseError::NoTrees               => "No trees.",
         }
     }
 }

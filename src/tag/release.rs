@@ -33,7 +33,7 @@ impl<'a> fmt::Debug for Release<'a> {
     }
 }
 
-fn validate_pkgs (repo: &git2::Repository, pkgs: &HashMap<&str, git2::Tree>) -> Result<(), ReleaseError> {
+fn validate_pkgs (repo: &git2::Repository, pkgs: &HashMap<&str, git2::Object>) -> Result<(), ReleaseError> {
     for (pkg_name, _) in pkgs.iter() {
         let pkg_path = repo.workdir().unwrap().join(&pkg_name);
         match fs::metadata(&pkg_path) {
@@ -98,8 +98,11 @@ impl<'a> Release<'a> {
                 }
             }
         }
+        if pkgs.len() == 0 {
+            return Err(ReleaseError::NoTrees);
+        }
 
-        // try!(validate_pkgs(&repo, &pkgs));
+        try!(validate_pkgs(&repo, &pkgs));
 
         let release = Release {
             repo: repo,
@@ -115,7 +118,6 @@ impl<'a> Release<'a> {
         let signature = self.repo.signature().unwrap();
         for (pkg_name, pkg_target) in self.pkgs.iter() {
             let tag_name = self.fmt_tag(&pkg_name);
-            println!("{:?} -> {:?}", pkg_name, pkg_target.id());
             let tag_result = self.repo.tag(&tag_name, pkg_target, &signature, self.notes, false);
             match tag_result {
                 Err(_) => println!("Didn’t create tag: {:?}", tag_name),

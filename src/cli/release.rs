@@ -56,14 +56,23 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
         pkg_specs,
         &notes,
         None
-    ).unwrap();
-    match release.validate_unreleased() {
-        Ok(_) => (),
+    );
+    match release {
+        Ok(release) => {
+            println!("{:?}", release);
+            match release.validate_unreleased() {
+                Ok(_) => {
+                    release.create_tags();
+                    println!("{:?}", release);
+                },
+                Err(err) => {
+                    println!("{:?}", err);
+                }
+            }
+        },
         Err(err) => {
             println!("{:?}", err);
         }
     }
-    release.create_tags();
-    println!("{:?}", release);
     Ok(())
 }
