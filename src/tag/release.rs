@@ -25,11 +25,7 @@ pub struct Release<'a> {
 impl<'a> fmt::Debug for Release<'a> {
     fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
         let short_id = self.target.short_id().unwrap();
-        write!(f, "Release at {:?} of: \n", short_id.as_str().unwrap());
-        for (name, object) in self.pkgs.iter() {
-            write!(f, "  {:?} -> {:?}\n", name, object.id());
-        };
-        Ok(())
+        write!(f, "Release name {:?}", short_id.as_str().unwrap())
     }
 }
 
@@ -69,7 +65,6 @@ impl<'a> Release<'a> {
                 notes: &'a str,
                 namespace: Option<&'static str>)
         -> Result<Release<'a>, ReleaseError> {
-        // -> Result<(), ReleaseError> {
 
         let namespace = namespace.unwrap_or(NAMESPACE);
 
