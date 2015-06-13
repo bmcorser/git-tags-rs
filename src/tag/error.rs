@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt;
 use std::io;
+use git2;
 
 #[derive(Debug)]
 pub enum ReleaseError {
@@ -8,6 +9,7 @@ pub enum ReleaseError {
     PackagePathDisallowed,
     AlreadyReleased,
     NoTrees,
+    GitError,
 }
 
 impl fmt::Display for ReleaseError {
@@ -17,6 +19,7 @@ impl fmt::Display for ReleaseError {
             ReleaseError::Io                    => write!(f, "I forget."),
             ReleaseError::PackagePathDisallowed => write!(f, "Not allowed to use ../ in package spec."),
             ReleaseError::NoTrees               => write!(f, "No trees."),
+            ReleaseError::GitError              => write!(f, "Git error."),
         }
     }
 }
@@ -26,9 +29,9 @@ impl Error for ReleaseError {
         match *self {
             ReleaseError::AlreadyReleased       => "Already released",
             ReleaseError::PackagePathDisallowed => "Not allowed to use ../ in package spec.",
-            // ReleaseError::AlreadyReleased => "Package already released",
             ReleaseError::Io                    => "I forget",
             ReleaseError::NoTrees               => "No trees.",
+            ReleaseError::GitError              => "Git error.",
         }
     }
 }
@@ -36,5 +39,11 @@ impl Error for ReleaseError {
 impl From<io::Error> for ReleaseError {
     fn from(err: io::Error) -> ReleaseError {
         ReleaseError::Io
+    }
+}
+
+impl From<git2::Error> for ReleaseError {
+    fn from(err: git2::Error) -> ReleaseError {
+        ReleaseError::GitError
     }
 }

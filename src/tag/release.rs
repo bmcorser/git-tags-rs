@@ -5,7 +5,7 @@ use std::io;
 use std::env;
 use std::hash::{Hash, Hasher};
 use std::result::Result;
-use std::path::{PathBuf,Path};
+use std::path::{PathBuf, Path};
 use std::error::Error;
 
 use git2;
@@ -16,8 +16,8 @@ static NAMESPACE: &'static str = "releases";
 
 pub struct Release<'a> {
     repo: &'a git2::Repository,
-    target: git2::Object<'a>,
-    pkgs: HashMap<&'a str, git2::Object<'a>>,
+    pub target: git2::Object<'a>,
+    pub pkgs: HashMap<&'a str, git2::Object<'a>>,
     notes: &'a str,
     NAMESPACE: &'static str,
 }
@@ -29,7 +29,9 @@ impl<'a> fmt::Debug for Release<'a> {
     }
 }
 
-fn validate_pkgs (repo: &git2::Repository, pkgs: &HashMap<&str, git2::Object>) -> Result<(), ReleaseError> {
+fn validate_pkgs (repo: &git2::Repository,
+                  pkgs: &HashMap<&str, git2::Object>)
+    -> Result<(), ReleaseError> {
     for (pkg_name, _) in pkgs.iter() {
         let pkg_path = repo.workdir().unwrap().join(&pkg_name);
         match fs::metadata(&pkg_path) {

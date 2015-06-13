@@ -39,6 +39,17 @@ fn capture_message<'a> (mut notes: String) -> String {
     notes
 }
 
+fn print_unreleased (release: &Release) {
+    for (pkg_name, pkg_tree) in release.pkgs.iter() {
+        match release.unreleased(pkg_name, pkg_tree) {
+            Ok(_)  => (),
+            Err(err) => {
+                println!("Package {:?} is already released", pkg_name);
+            }
+        }
+    }
+}
+
 pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
     let repo_path = Path::new(opts.value_of("repo").unwrap_or("."));
     let commit = opts.value_of("commit").unwrap_or("HEAD");
@@ -49,24 +60,23 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
         Some(m) => notes = m.to_string(),
     }
     let pkg_specs = opts.values_of("pkgs").unwrap();
-    let repo = git2::Repository::discover(repo_path).unwrap();
-    let release = Release::new(
-        &repo,
-        commit,
-        pkg_specs,
-        &notes,
-        None
-    );
+    let repo: git2::Repository = match git2::Repository::discover(repo_path) {
+        Ok(repo) => repo,
+        Err(err) => {
+            println!("Git error: {:?}", err.to_string());
+            return Err(ReleaseError::GitError);
+        }
+    };
+    let release = Release::new(&repo, commit, pkg_specs, &notes, None);
     match release {
         Ok(release) => {
-            println!("{:?}", release);
             match release.validate_unreleased() {
                 Ok(_) => {
                     release.create_tags();
                     println!("{:?}", release);
                 },
                 Err(err) => {
-                    println!("{:?}", err);
+                    print_unreleased(&release);
                 }
             }
         },
