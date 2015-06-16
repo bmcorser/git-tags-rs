@@ -68,6 +68,12 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
             return Err(ReleaseError::GitError);
         }
     };
+
+    match repo.statuses(None).unwrap().len() {
+        0 => (),
+        _ => return Err(ReleaseError::DirtyWorkTree),
+    }
+
     let release = Release::new(&repo, commit, pkg_specs, &notes, None);
     match release {
         Ok(release) => {

@@ -67,14 +67,8 @@ impl<'a> Release<'a> {
                 notes: &'a str,
                 namespace: Option<&'static str>)
         -> Result<Release<'a>, ReleaseError> {
-        match repo.statuses(None).unwrap().len() {
-            0 => (),
-            _ => return Err(ReleaseError::DirtyWorkTree),
-        }
-
 
         let namespace = namespace.unwrap_or(NAMESPACE);
-
         let target = repo.revparse_single(commit).unwrap();
 
         /* todo: deep pkgs
