@@ -6,6 +6,7 @@ use git2;
 #[derive(Debug)]
 pub enum ReleaseError {
     Io,
+    DirtyWorkTree,
     PackagePathDisallowed,
     AlreadyReleased,
     NoTrees,
@@ -15,6 +16,7 @@ pub enum ReleaseError {
 impl fmt::Display for ReleaseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            ReleaseError::DirtyWorkTree         => write!(f, "Dirty working tree."),
             ReleaseError::AlreadyReleased       => write!(f, "Already released"),
             ReleaseError::Io                    => write!(f, "I forget."),
             ReleaseError::PackagePathDisallowed => write!(f, "Not allowed to use ../ in package spec."),
@@ -27,6 +29,7 @@ impl fmt::Display for ReleaseError {
 impl Error for ReleaseError {
     fn description(&self) -> &str {
         match *self {
+            ReleaseError::DirtyWorkTree         => "Dirty working tree.",
             ReleaseError::AlreadyReleased       => "Already released",
             ReleaseError::PackagePathDisallowed => "Not allowed to use ../ in package spec.",
             ReleaseError::Io                    => "I forget",

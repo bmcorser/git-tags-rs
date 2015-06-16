@@ -43,7 +43,9 @@ fn print_unreleased (release: &Release) {
         match release.unreleased(pkg_name, pkg_tree) {
             Ok(_)  => (),
             Err(err) => {
-                println!("Package {:?} is already released", pkg_name);
+                let short_id = release.target.short_id().unwrap();
+                let commit = short_id.as_str().unwrap();
+                println!("Package {:?} is already released at {:?}", pkg_name, commit);
             }
         }
     }
@@ -80,7 +82,17 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
             }
         },
         Err(err) => {
-            println!("{:?}", err);
+            match err {
+                ReleaseError::DirtyWorkTree => {
+                    println!("{:?}: Untracked, uncommited or unadded files in working directory.", err);
+                },
+                ReleaseError::NoTrees => {
+                    println!("{:?}: No valid packages supplied.", err);
+                },
+                _  => {
+                    println!("{:?}", err);
+                }
+            }
         }
     }
     Ok(())
