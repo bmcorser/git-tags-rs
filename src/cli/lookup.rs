@@ -37,27 +37,25 @@ pub fn run(opts: &clap::ArgMatches) -> Result<(), LookupError> {
     };
     let pkg_names = opts.values_of("pkgs").unwrap();
     for pkg_name in pkg_names {
-        let mut revwalk = repo.revwalk().unwrap();
-        revwalk.push_head().unwrap();
-    }
-
-    for pkg_name in pkg_names {
-        println!("{:?}", pkg_name);
         let glob = format!("refs/tags/releases/{}/*", pkg_name);
         let mut pkg_commits = HashSet::new();
+        let mut pkg_tags = HashMap::new();
         for reference in repo.references_glob(&glob).unwrap() {
             let mut split_ref = Vec::with_capacity(5);
             let ref_name = reference.name().unwrap();
             split_ref.extend(ref_name.split("/"));
-            let commit = repo.revparse_single(split_ref[4]).unwrap();
+            let commit = repo.revparse_single(split_ref[4]).unwrap().id();
+            pkg_commits.insert(commit);
+            pkg_tags.insert(commit, reference.target().unwrap());
         }
         let mut revwalk = repo.revwalk().unwrap();
         revwalk.push_head().unwrap();
-        for reference in revwalk {
-            println!("{:?}", reference);
+        revwalk.set_sorting(git2::SORT_TOPOLOGICAL);
+        for rev in revwalk {
+            if pkg_commits.contains(&rev) {
+                println!("latest for {:?} is {:?}", pkg_name, rev);
+            }
         }
     }
-    /**/
-
     Ok(())
 }
