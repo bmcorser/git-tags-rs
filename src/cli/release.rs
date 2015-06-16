@@ -1,14 +1,13 @@
+extern crate clap;
+extern crate git2;
 use std;
 use std::error::Error;
 use std::io::{Read, Seek, SeekFrom};
 use std::collections::HashSet;
 use std::path::Path;
 
-use git2;
-
 use tag::release::Release;
 use tag::error::ReleaseError;
-use clap;
 use tempfile;
 
 pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {

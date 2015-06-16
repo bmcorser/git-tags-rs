@@ -7,6 +7,7 @@ authors = ["bmcorser <bmcorser@gmail.com>"]
 clap = "0.10"
 tempfile = "0.5"
 git2 = "0.2"
+yaml = "0.2"
 
 [lib]
 name = "tag"

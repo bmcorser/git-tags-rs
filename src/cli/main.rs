@@ -25,9 +25,23 @@ fn main () -> () {
     let args = app.get_matches();
     // let disaster: Result<(), Box<Error>> = Err(Box::new());
     let result = match args.subcommand() {
-        ("release", Some(cmd_args)) => release::run(cmd_args),
-        // ("lookup", Some(cmd_args)) => lookup::run(cmd_args),
-        _ => Err(ReleaseError::Io),
+        ("release", Some(cmd_args)) => match release::run(cmd_args) {
+            Err(_) => {
+                println!("release BAD");
+            },
+            Ok(_)  => {
+                println!("yes fine");
+            },
+        },
+        ("lookup", Some(cmd_args)) => match lookup::run(cmd_args) {
+            Err(_) => {
+                println!("lookup BAD");
+            },
+            Ok(_)  => {
+                println!("yes fine");
+            },
+        },
+        _ => (),
     };
     println!("Bye.");
 }

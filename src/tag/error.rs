@@ -47,3 +47,30 @@ impl From<git2::Error> for ReleaseError {
         ReleaseError::GitError
     }
 }
+
+#[derive(Debug)]
+pub enum LookupError {
+    GitError,
+}
+
+impl fmt::Display for LookupError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            LookupError::GitError => write!(f, "Git error."),
+        }
+    }
+}
+
+impl Error for LookupError {
+    fn description(&self) -> &str {
+        match *self {
+            LookupError::GitError => "Git error.",
+        }
+    }
+}
+
+impl From<git2::Error> for LookupError {
+    fn from(err: git2::Error) -> LookupError {
+        LookupError::GitError
+    }
+}
