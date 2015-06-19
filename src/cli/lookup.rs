@@ -51,16 +51,16 @@ pub fn run(opts: &clap::ArgMatches) -> Result<(), LookupError> {
         let mut revwalk = repo.revwalk().unwrap();
         revwalk.push_head().unwrap();
         revwalk.set_sorting(git2::SORT_TOPOLOGICAL);
+        let mut latest: Option<String> = None;
         for commit in revwalk {
             match pkg_tags.entry(commit) {
-                Entry::Occupied(entry) => {
-                    println!("latest for {:?} is {:?}", pkg_name, entry.get());
-                    break;
-                }
-                Entry::Vacant(_)   => {
-                    // println!("skipping {:?}", commit);
-                }
+                Entry::Occupied(ref_name) => {latest = Some(ref_name.get().clone()); break;},
+                Entry::Vacant(_)          => (),
             }
+        }
+        match latest {
+            Some(ref_name) => println!("package {:?}, latest tag: {:?}", pkg_name, ref_name),
+            None         => (),
         }
     }
     Ok(())
