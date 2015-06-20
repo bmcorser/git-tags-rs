@@ -41,8 +41,11 @@ pub fn run(opts: &clap::ArgMatches) -> Result<(), LookupError> {
         let glob = format!("refs/tags/releases/{}/*", pkg_name);
         let mut pkg_commits = HashSet::new();
         let mut pkg_tags = HashMap::new();
+        let mut split_ref = Vec::with_capacity(5);
         for reference in repo.references_glob(&glob).unwrap() {
             let ref_name = reference.name().unwrap();
+            split_ref.extend(ref_name.split("/"));
+            ref_name.split("/").unwrap()[2];
             let commit = repo.revparse_single(
                 ref_name.split("/").last().unwrap()).unwrap().id();
             pkg_commits.insert(commit);
