@@ -13,14 +13,14 @@ use tempfile;
 pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
     clap::SubCommand::new("release")
                      .about("about release")
-                     .arg(clap::Arg::from_usage("<pkgs>... 'A sequence of package names'"))
+                     .arg(clap::Arg::from_usage("[channel] 'Which channel to release on (default `development`)'"))
                      .arg_required_else_help(true)
                      .args_from_usage("\
     -m --message=[message]  'Tell others what this release is'
     -c --commit=[commit]    'Release at a specific commit'
     -r --repo=[repo]        'Specifiy the repository to release from'
-    -n --no-remote          'Don’t push tags to the remote'
-    -f --force              'Ignore dirty repo warnings'")
+    -n --no-remote          'DEBUG: Don’t push tags to the remote'
+    -f --force              'DEBUG: Ignore dirty repo warnings'")
 }
 
 #[allow(unused)]  // TODO: Use result
@@ -38,29 +38,10 @@ fn capture_message<'a> (mut notes: String) -> String {
     notes
 }
 
-fn print_unreleased (release: &Release) {
-    for (pkg_name, pkg_tree) in release.pkgs.iter() {
-        match release.unreleased(pkg_name, pkg_tree) {
-            Ok(_)  => (),
-            Err(err) => {
-                let short_id = release.target.short_id().unwrap();
-                let commit = short_id.as_str().unwrap();
-                println!("Package {:?} is already released at {:?}", pkg_name, commit);
-            }
-        }
-    }
-}
-
 pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
     let repo_path = Path::new(opts.value_of("repo").unwrap_or("."));
-    let commit = opts.value_of("commit").unwrap_or("HEAD");
 
-    let mut notes = String::new();
-    match opts.value_of("message") {
-        None    => notes = capture_message(notes),
-        Some(m) => notes = m.to_string(),
-    }
-    let pkg_specs = opts.values_of("pkgs").unwrap();
+    let channel = opts.value_of("channel").unwrap_or("development");
     let repo: git2::Repository = match git2::Repository::discover(repo_path) {
         Ok(repo) => repo,
         Err(err) => {
@@ -74,32 +55,30 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
         _ => return Err(ReleaseError::DirtyWorkTree),
     }
 
-    let release = Release::new(&repo, commit, pkg_specs, &notes, None);
+    let release = Release::new(&repo, channel, None);
     match release {
         Ok(release) => {
-            match release.validate_unreleased() {
-                Ok(_) => {
-                    release.create_tags();
-                    println!("{:?}", release);
-                },
-                Err(err) => {
-                    print_unreleased(&release);
-                }
-            }
+            release.create_tag();
         },
         Err(err) => {
             match err {
                 ReleaseError::DirtyWorkTree => {
+                    // print status ooh colour
                     println!("{:?}: Untracked, uncommited or unadded files in working directory.", err);
                 },
                 ReleaseError::NoTrees => {
-                    println!("{:?}: No valid packages supplied.", err);
+                    println!("{:?}: Nothing changed.", err);
                 },
                 _  => {
-                    println!("{:?}", err);
+                    println!("urfkdm8: {:?}", err);
                 }
             }
         }
+    }
+    let mut notes = String::new();
+    match opts.value_of("message") {
+        None    => notes = capture_message(notes),
+        Some(m) => notes = m.to_string(),
     }
     Ok(())
 }

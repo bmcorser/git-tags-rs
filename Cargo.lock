@@ -4,8 +4,9 @@ version = "0.1.0"
 dependencies = [
  "clap 0.10.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "git2 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glob 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempfile 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "yaml 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yaml-rust 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -42,6 +43,11 @@ dependencies = [
  "libgit2-sys 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.2.35 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "glob"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "kernel32-sys"
@@ -135,27 +141,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "regex"
-version = "0.1.33"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "regex-syntax 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "regex-syntax"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "regex_macros"
-version = "0.1.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "regex 0.1.33 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "rustc-serialize"
 version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -207,11 +192,7 @@ version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "yaml"
+name = "yaml-rust"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "regex 0.1.33 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex_macros 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
