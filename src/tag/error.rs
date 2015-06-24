@@ -34,13 +34,13 @@ impl Error for ReleaseError {
 }
 
 impl From<io::Error> for ReleaseError {
-    fn from(err: io::Error) -> ReleaseError {
+    fn from(_: io::Error) -> ReleaseError {
         ReleaseError::Io
     }
 }
 
 impl From<git2::Error> for ReleaseError {
-    fn from(err: git2::Error) -> ReleaseError {
+    fn from(_: git2::Error) -> ReleaseError {
         ReleaseError::GitError
     }
 }
@@ -50,6 +50,8 @@ pub enum LookupError {
     GitError,
     NoChannel,
     NestingError,
+    NotFound,
+    EmptyChannel,
 }
 
 impl fmt::Display for LookupError {
@@ -58,6 +60,8 @@ impl fmt::Display for LookupError {
             LookupError::GitError     => write!(f, "Git error."),
             LookupError::NoChannel    => write!(f, "No channel supplied."),
             LookupError::NestingError => write!(f, "Nested packages disallowed."),
+            LookupError::NotFound     => write!(f, "Release not found."),
+            LookupError::EmptyChannel => write!(f, "Channel is empty."),
         }
     }
 }
@@ -68,12 +72,14 @@ impl Error for LookupError {
             LookupError::GitError     => "Git error.",
             LookupError::NoChannel    => "No channel supplied.",
             LookupError::NestingError => "Nesting packages disallowed.",
+            LookupError::NotFound     => "Release not found.",
+            LookupError::EmptyChannel => "Channel is empty.",
         }
     }
 }
 
 impl From<git2::Error> for LookupError {
-    fn from(err: git2::Error) -> LookupError {
+    fn from(_: git2::Error) -> LookupError {
         LookupError::GitError
     }
 }

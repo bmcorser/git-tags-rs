@@ -3,6 +3,7 @@ extern crate git2;
 use std;
 use std::error::Error;
 use std::io::{Read, Seek, SeekFrom};
+use std::io;
 use std::collections::HashSet;
 use std::path::Path;
 
@@ -14,7 +15,7 @@ pub fn command<'a, 'b, 'c, 'd, 'e, 'f> () -> clap::App<'a, 'b, 'c, 'd, 'e, 'f> {
     clap::SubCommand::new("release")
                      .about("about release")
                      .arg(clap::Arg::from_usage("[channel] 'Which channel to release on (default `development`)'"))
-                     .arg_required_else_help(true)
+                     // .arg_required_else_help(true)
                      .args_from_usage("\
     -m --message=[message]  'Tell others what this release is'
     -c --commit=[commit]    'Release at a specific commit'
@@ -55,10 +56,22 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
         _ => return Err(ReleaseError::DirtyWorkTree),
     }
 
-    let release = Release::new(&repo, channel, None);
+    let release = Release::new(&repo, channel);
     match release {
         Ok(release) => {
-            release.create_tag();
+            println!("The following packages changed:");
+            for package in &release.changed {
+                println!("  {:?}", package);
+            }
+            let mut notes = String::new();
+            match opts.value_of("message") {
+                None    => notes = capture_message(notes),
+                Some(m) => notes = m.to_string(),
+            }
+            try!(release.create_tag(Some(&notes)));
+            println!("Pushing ...");
+            try!(release.push());
+            println!("Released!");
         },
         Err(err) => {
             match err {
@@ -74,11 +87,6 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
                 }
             }
         }
-    }
-    let mut notes = String::new();
-    match opts.value_of("message") {
-        None    => notes = capture_message(notes),
-        Some(m) => notes = m.to_string(),
     }
     Ok(())
 }

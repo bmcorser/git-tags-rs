@@ -1,8 +1,7 @@
-#![feature(path_relative_from,collections)]
+#![feature(path_relative_from)]
 
 extern crate git2;
 extern crate glob;
-extern crate yaml_rust;
 
 
 pub mod release;

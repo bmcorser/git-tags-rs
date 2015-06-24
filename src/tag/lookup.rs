@@ -1,4 +1,5 @@
-use std::collections::{HashSet, HashMap};
+use std::error::Error;
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use glob::glob;
@@ -14,7 +15,7 @@ pub fn channel_releases<'a> (repo: &'a git2::Repository, channel: &str) -> Resul
         refs.push((number, ref_name));
     }
     if refs.len() == 0 {
-        return Err(LookupError::NoChannel);
+        return Err(LookupError::EmptyChannel);
     }
     refs.sort_by(|&(a, _), &(b, _)| b.cmp(&a));
     Ok(refs)
@@ -37,6 +38,9 @@ pub fn packages (repo: &git2::Repository) -> Result<HashMap<PathBuf, git2::Oid>,
                 let workdir = repo.workdir().unwrap();
                 let rel_path = path.relative_from(workdir).unwrap().to_path_buf();
                 for path in packages_found.keys() {
+                    if rel_path.starts_with(path) {
+                        return Err(LookupError::NestingError);
+                    }
                 }
                 let package_tree = head_tree.get_path(rel_path.as_path());
                 packages_found.insert(rel_path, package_tree.unwrap().id());
@@ -45,45 +49,30 @@ pub fn packages (repo: &git2::Repository) -> Result<HashMap<PathBuf, git2::Oid>,
     };
     Ok(packages_found)
 }
-/*
-    refs = channel_releases(channel)
 
-    def look_back(name):
-        'Iterate through historic releases until we find
-        for ref in refs:
-            tree = git.tag_dict(ref)['body'].get(name)
-            if tree:
-                return tree
-    git.checkout(refs[0])
-    ret_dict = {}
-    previous_release = git.tag_dict(refs[0])['body']
-    for name, attrs in packages('.').items():
-        if name not in previous_release:
-            tree = look_back(name)
-        else:
-            tree = previous_release[name]
-        ret_dict[name] = tree
-    return ret_dict
-    */
-
-pub fn channel_latest (repo: &git2::Repository, channel: &str) -> Result<(), LookupError> {
-    let refs = channel_releases(repo, channel).unwrap();
+pub fn channel_latest (repo: &git2::Repository, channel: &str) -> Result<(u32, HashMap<PathBuf, git2::Oid>), LookupError> {
+    let refs = try!(channel_releases(repo, channel));
     let latest_tree = repo.revparse_single(&refs[0].1).unwrap();
-    println!("{:?}", refs[0].1);
-    try!(repo.checkout_tree(&latest_tree, None));
-    Ok(())
+    try!(repo.reset(&latest_tree, git2::ResetType::Hard, None));
+    let ret_val = (refs[0].0, packages(&repo).unwrap());
+    try!(repo.reset(&repo.revparse_single("HEAD").unwrap(),
+                    git2::ResetType::Hard, None));
+    Ok(ret_val)
 }
-/*
-        for pkg_spec in pkg_specs {
-            if pkg_spec.contains("/") {
-                return Err(ReleaseError::PackagePathDisallowed);
-            }
-            for tree_entry in target_tree.iter() {
-                let tree_name = tree_entry.name().unwrap();
-                if tree_name == pkg_spec {
-                    let pkg_object = tree_entry.to_object(&repo).unwrap();
-                    pkgs.insert(pkg_spec, pkg_object);
-                }
-            }
+
+pub fn channel_release (repo: &git2::Repository, channel: &str, number: u32) -> Result<(u32, HashMap<PathBuf, git2::Oid>), LookupError> {
+    let reference = format!("refs/tags/releases/{}/{}", channel, number);
+    let release_tree = match repo.revparse_single(&reference) {
+        Ok(release_tree) => release_tree,
+        Err(err)    => {
+            println!("Git said: {:?}", err.description());
+            println!("No release numer {:?} in channel {:?}", number, channel);
+            return Err(LookupError::NotFound);
         }
-*/
+    };
+    try!(repo.reset(&release_tree, git2::ResetType::Hard, None));
+    let ret_val = (number, packages(&repo).unwrap());
+    try!(repo.reset(&repo.revparse_single("HEAD").unwrap(),
+                    git2::ResetType::Hard, None));
+    Ok(ret_val)
+}

@@ -7,6 +7,7 @@ use std::io;
 extern crate tempfile;
 extern crate clap;
 extern crate git2;
+extern crate yaml_rust;
 
 extern crate tag;
 use tag::error::ReleaseError;
@@ -27,21 +28,21 @@ fn main () -> () {
     let result = match args.subcommand() {
         ("release", Some(cmd_args)) => match release::run(cmd_args) {
             Err(_) => {
-                println!("release BAD");
+                // println!("release BAD");
             },
             Ok(_)  => {
-                println!("yes fine");
+                // println!("yes fine");
             },
         },
         ("lookup", Some(cmd_args)) => match lookup::run(cmd_args) {
             Err(_) => {
-                println!("lookup BAD");
+                // println!("lookup BAD");
             },
             Ok(_)  => {
-                println!("yes fine");
+                // println!("yes fine");
             },
         },
         _ => (),
     };
-    println!("Bye.");
+    // println!("Bye.");
 }

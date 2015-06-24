@@ -1,3 +1,4 @@
+use yaml_rust::YamlEmitter;
 use std::path::Path;
 use std::error::Error;
 use std::collections::HashSet;
@@ -31,47 +32,27 @@ pub fn run(opts: &clap::ArgMatches) -> Result<(), LookupError> {
     let repo: git2::Repository = try!(git2::Repository::discover(repo_path));
     let channel = match opts.value_of("channel") {
         Some(channel) => channel,
-        None          => return Err(LookupError::NoChannel),
+        None          => return Err(LookupError::NotFound),
     };
-    let packages = lookup::packages(&repo).unwrap();
-    for (name, id) in packages {
-        // println!("{:?}\t{:?}", name, id);
-    }
-    let channel_releases = lookup::channel_latest(&repo, "development").unwrap();
-    /*
-    for release in channel_releases {
-        println!("{:?}", release);
-    }
-    */
-
-    let glob = format!("refs/tags/releases/{}/*", channel);
-    /*
-    let mut pkg_commits = HashSet::new();
-    let mut pkg_tags = HashMap::new();
-    let mut split_ref = Vec::with_capacity(5);
-    for reference in repo.references_glob(&glob).unwrap() {
-        let ref_name = reference.name().unwrap();
-        split_ref.extend(ref_name.split("/"));
-        ref_name.split("/").unwrap()[2];
-        let commit = repo.revparse_single(
-            ref_name.split("/").last().unwrap()).unwrap().id();
-        pkg_commits.insert(commit);
-        pkg_tags.insert(commit, reference.name().unwrap().to_string());
-    }
-    let mut revwalk = repo.revwalk().unwrap();
-    revwalk.push_head().unwrap();
-    revwalk.set_sorting(git2::SORT_TOPOLOGICAL);
-    let mut latest: Option<String> = None;
-    for commit in revwalk {
-        match pkg_tags.entry(commit) {
-            Entry::Occupied(ref_name) => {latest = Some(ref_name.get().clone()); break;},
-            Entry::Vacant(_)          => (),
-        }
-    }
-    match latest {
-        Some(ref_name) => println!("package {:?}, latest tag: {:?}", pkg_name, ref_name),
-        None         => (),
-    }
-    */
+    let result = match opts.value_of("number") {
+        Some(number) => {
+            let (number, packages) = lookup::channel_release(&repo, channel, number.parse::<u32>().unwrap()).unwrap();
+            println!("channel: {:?}", channel);
+            println!("number: {:?}", number);
+            println!("packages:");
+            for (path, tree) in packages {
+                println!("  {:?}: {:?}", path, tree);
+            }
+        },
+        None => {
+            let (number, packages) = lookup::channel_latest(&repo, channel).unwrap();
+            println!("channel: {:?}", channel);
+            println!("number: {:?}", number);
+            println!("packages:");
+            for (path, tree) in packages {
+                println!("  {:?}: {:?}", path, tree);
+            }
+        },
+    };
     Ok(())
 }
