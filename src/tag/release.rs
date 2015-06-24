@@ -116,7 +116,6 @@ impl<'a> Release<'a> {
         match push_origin.statuses() {
             Ok(statuses) => {
                 for push_status in statuses {
-                    println!("{:?}", push_status.reference);
                     match push_status.message {
                         Some(message) => println!("{:?}", message),
                         None          => (),

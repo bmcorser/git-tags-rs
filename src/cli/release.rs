@@ -51,9 +51,18 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
         }
     };
 
-    match repo.statuses(None).unwrap().len() {
-        0 => (),
-        _ => return Err(ReleaseError::DirtyWorkTree),
+    let mut status_opts = git2::StatusOptions::new();
+    status_opts.include_ignored(false);
+    let statuses = repo.statuses(Some(&mut status_opts)).unwrap();
+    if statuses.len() != 0 {
+        // /* needs Debug
+        for entry in statuses.iter() {
+            // println!("{:?}: {:?}", entry.path().unwrap(), entry.status().bits());
+            println!("{:?}", entry.path().unwrap());
+        }
+        // */
+        println!("Untracked, uncommited or unadded files in working directory.");
+        return Err(ReleaseError::DirtyWorkTree);
     }
 
     let release = Release::new(&repo, channel);
@@ -66,19 +75,15 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
             let mut notes = String::new();
             match opts.value_of("message") {
                 None    => notes = capture_message(notes),
-                Some(m) => notes = m.to_string(),
+                Some(m) => notes = format!("{}\n", m),
             }
             try!(release.create_tag(Some(&notes)));
             println!("Pushing ...");
             try!(release.push());
-            println!("Released!");
+            println!("Release #{:?} on channel {:?}", release.number, release.channel);
         },
         Err(err) => {
             match err {
-                ReleaseError::DirtyWorkTree => {
-                    // print status ooh colour
-                    println!("{:?}: Untracked, uncommited or unadded files in working directory.", err);
-                },
                 ReleaseError::NoTrees => {
                     println!("{:?}: Nothing changed.", err);
                 },
