@@ -51,6 +51,18 @@ pub fn run<'a> (opts: &'a clap::ArgMatches) -> Result<(), ReleaseError> {
         }
     };
 
+        let mut origin = repo.find_remote("origin").unwrap();
+        let mut callbacks = git2::RemoteCallbacks::new();
+        let cred_helper = git2::CredentialHelper::new(&origin.url().unwrap());
+        let git_cfg = git2::Config::open_default().unwrap();
+        fn get_creds (a: &str, b: Option<&str>, c: git2::CredentialType) -> Result<git2::Cred, git2::Error> {
+            git2::Cred::ssh_key_from_agent(b.unwrap())
+        };
+        callbacks.credentials(get_creds);
+        origin.set_callbacks(callbacks);
+        origin.connect(git2::Direction::Push).unwrap();
+        origin.disconnect();
+
     let mut status_opts = git2::StatusOptions::new();
     status_opts.include_ignored(false);
     let statuses = repo.statuses(Some(&mut status_opts)).unwrap();
